@@ -1,5 +1,5 @@
 # udp-latency
-A tiny latency testing tool implemented by UDP protocol in Python 📈. 
+A tiny end-to-end latency testing tool implemented by UDP protocol in Python 📈. 
 
 
 
