@@ -18,13 +18,13 @@ Compare with other existing latency testing tools.
 
 ## Server Usage
 
-`udp_latency.py -c -f <frequency> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>`
+`python3 udp_latency.py -c -f <frequency> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>`
 
 
 
 ## Client Usage
 
-`udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --save <records saving path>`
+`python3 udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --save <records saving path>`
 
 
 
