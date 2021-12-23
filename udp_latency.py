@@ -2,7 +2,8 @@ import socket
 import time
 import math
 import csv
-import sys, getopt
+import sys
+import getopt
 
 HEADER_SIZE = 32 + 4 + 8
 
@@ -73,7 +74,7 @@ class Server:
         self.local_port = local_port
         self.remote_ip = remote_ip
         self.to_port = to_port
-        self.log = []
+        self.log = [['index', 'latency', 'recv-time', 'recv-size']]
 
         self._udp_socket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -128,9 +129,11 @@ class Server:
     def __del__(self):
         self._udp_socket.close()
 
+
 if __name__ == "__main__":
     try:
-        opts, _ = getopt.getopt(sys.argv[1:], 'csf:n:t:b:', ["verbose=", "save=", "ip=", "port="])
+        opts, _ = getopt.getopt(sys.argv[1:], 'csf:n:t:b:', [
+                                "verbose=", "save=", "ip=", "port="])
         opts = dict(opts)
         opts.setdefault('-f', "1")
         opts.setdefault('-n', "1500")
@@ -145,17 +148,15 @@ if __name__ == "__main__":
         print('For Client --> udp_latency.py -c -f <frequency> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>')
         print('For Server --> udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --save <records saving path>')
         sys.exit(2)
-    
+
     if '-c' in opts.keys():
         client = Client(remote_ip=opts['--ip'], to_port=int(opts['--port']))
-        client.send(int(opts['-f']), int(opts['-n']), int(opts['-t']), eval(opts['--verbose']))
+        client.send(int(opts['-f']), int(opts['-n']),
+                    int(opts['-t']), eval(opts['--verbose']))
     if '-s' in opts.keys():
         server = Server(remote_ip=opts['--ip'], local_port=int(opts['--port']))
-        server.listen(buffer_size=int(opts['-b']), verbose=eval(opts['--verbose']))
+        server.listen(buffer_size=int(
+            opts['-b']), verbose=eval(opts['--verbose']))
         server.evaluate()
         if '--save' in opts.keys():
             server.save(opts['--save'])
-
-
-
-
