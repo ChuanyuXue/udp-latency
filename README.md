@@ -30,6 +30,8 @@ Compare with other existing latency testing tools.
 
 | Argument | Description                                                  | Default value |
 | -------- | ------------------------------------------------------------ | ------------- |
+| -c       | Client                                                       | N/A           |
+| -s       | Server                                                       | N/A           |
 | -f       | Frequency of sending packets in clients, unit is Hz (number of packet per second). | 1             |
 | -n       | Size of sending packets in clients, unit is bytes. Notes that it is the frame size on wire including IP header and UDP header, the size of payload should be smaller by 32. | 1500          |
 | -t       | Client running time, uint is second. The server also stops when client stops running. | 10            |
