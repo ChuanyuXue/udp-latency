@@ -11,7 +11,7 @@ Compare with other existing latency testing tools.
 | ---------------------------- | -------------------------------------------------------- | ------------------------------------------------------ | ------------ | ------------------------- |
 | Support UDP                  | ✅                                                        | ❌                                                      | ❌            | ✅                         |
 | Flexible packet size         | ✅                                                        | ❌                                                      | ❌            | ❌                         |
-| Specific sending frequency   | ✅                                                        | ❌                                                      | ❌            | ❌                         |
+| Specific sending frequency   | ✅                                                        | ✅                                                      | ❌            | ❌                         |
 | Simple as single Python file | ✅                                                        | ❌                                                      | ❌            | ❌                         |
 
 
