@@ -1,16 +1,18 @@
 # udp-latency
 A tiny latency testing tool implemented by UDP protocol in Python 📈. 
 
+
+
 ## Features
 
 Compare with other existing latency testing tools.
 
-|                              | udp-latency | tcp-latency | Ping command | IPerf |
-| ---------------------------- | ----------- | ----------- | ------------ | ----- |
-| Support UDP                  | ✅           | ❌           | ❌            | ✅     |
-| Flexible packet size         | ✅           | ❌           | ❌            | ❌     |
-| Specific sending frequency   | ✅           | ❌           | ❌            | ❌     |
-| Simple as single Python file | ✅           | ❌           | ❌            | ❌     |
+|                              | [udp-latency](https://github.com/ChuanyuXue/udp-latency) | [tcp-latency](https://github.com/dgzlopes/tcp-latency) | Ping command | [IPerf](https://iperf.fr) |
+| ---------------------------- | -------------------------------------------------------- | ------------------------------------------------------ | ------------ | ------------------------- |
+| Support UDP                  | ✅                                                        | ❌                                                      | ❌            | ✅                         |
+| Flexible packet size         | ✅                                                        | ❌                                                      | ❌            | ❌                         |
+| Specific sending frequency   | ✅                                                        | ❌                                                      | ❌            | ❌                         |
+| Simple as single Python file | ✅                                                        | ❌                                                      | ❌            | ❌                         |
 
 
 
