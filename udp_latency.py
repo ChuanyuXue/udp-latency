@@ -74,7 +74,7 @@ class Server:
         self.local_port = local_port
         self.remote_ip = remote_ip
         self.to_port = to_port
-        self.log = [['index', 'latency', 'recv-time', 'recv-size']]
+        self.log = []
 
         self._udp_socket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -101,19 +101,22 @@ class Server:
 
     def evaluate(self):
         latency_list = [row[1] for row in self.log]
-        latency_max = min(latency_list)
+        latency_max = max(latency_list)
         latency_avg = sum(latency_list) / len(latency_list)
         var = sum(pow(x - latency_avg, 2)
                   for x in latency_list) / len(latency_list)
-        jitter = math.sqrt(var)
+        latency_std = math.sqrt(var)
+        jitter = sum(
+            [v - latency_list[i] for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
         bandwidth = sum([x[3] for x in self.log]) / \
             ((self.log[-1][2] - self.log[0][2]) * 1e-9)
 
         print('| -------------  Summary  --------------- |')
         print('Average latency: %f second' % latency_avg)
         print('Maximum latency: %f second' % latency_max)
+        print('Std latency: %f second' % latency_std)
         print('bandwidth: %f Mbits' % (bandwidth * 0.000008))
-        print('Jitter: %f' % jitter)
+        print('Jitter: %f second' % jitter)
         return {
             'latency_max': latency_max,
             'latency_avg': latency_avg,
@@ -124,7 +127,8 @@ class Server:
     def save(self, path):
         with open(path, 'w') as f:
             writer = csv.writer(f, delimiter=',')
-            writer.writerows(self.log)
+            content = [['index', 'latency', 'recv-time', 'recv-size']]
+            writer.writerows(content + self.log)
 
     def __del__(self):
         self._udp_socket.close()
