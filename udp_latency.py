@@ -35,6 +35,7 @@ class Client:
 
         start_time = time.time_ns()
         running_time = running_time * 1e9
+        period = 1 / frequency if frequency else 0
         while True:
             current_time = time.time_ns()
             index_bytes = self.packet_index.to_bytes(4, 'big')
@@ -52,7 +53,10 @@ class Client:
                 print('|  Client: %d  |  Packet: %d  |  Time: %d  |  Data size: %d  |' %
                       (self.local_port, self.packet_index, current_time, send_nums))
             self.packet_index += 1
-            time.sleep(1 / frequency)
+            # process_time = (time.time_ns() - current_time) * 1e-9
+            # wait_time = period - process_time if period > process_time else period
+            # time.sleep(wait_time)
+            time.sleep(period)
 
         self._udp_socket.sendto(
             (0).to_bytes(4, 'big'), (self.remote_ip, self.to_port))
@@ -107,9 +111,11 @@ class Server:
                   for x in latency_list) / len(latency_list)
         latency_std = math.sqrt(var)
         jitter = sum(
-            [v - latency_list[i] for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
+            [abs(v - latency_list[i]) for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
         bandwidth = sum([x[3] for x in self.log]) / \
             ((self.log[-1][2] - self.log[0][2]) * 1e-9)
+        packet_loss = (
+            max([x[0] for x in self.log]) - len(latency_list)) / max([x[0] for x in self.log])
 
         print('| -------------  Summary  --------------- |')
         print('Average latency: %f second' % latency_avg)
@@ -117,6 +123,7 @@ class Server:
         print('Std latency: %f second' % latency_std)
         print('bandwidth: %f Mbits' % (bandwidth * 0.000008))
         print('Jitter: %f second' % jitter)
+        print('Packet loss: %f' % packet_loss)
         return {
             'latency_max': latency_max,
             'latency_avg': latency_avg,
@@ -155,6 +162,8 @@ if __name__ == "__main__":
 
     if '-c' in opts.keys():
         client = Client(remote_ip=opts['--ip'], to_port=int(opts['--port']))
+        if opts['-f'] == 'm':
+            opts['-f'] = 0
         client.send(int(opts['-f']), int(opts['-n']),
                     int(opts['-t']), eval(opts['--verbose']))
     if '-s' in opts.keys():
