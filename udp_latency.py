@@ -12,9 +12,9 @@ class Client:
     def __init__(
             self,
             local_ip="127.0.0.1",
-            local_port=20001,
+            local_port=20002,
             remote_ip="127.0.0.1",
-            to_port=20002
+            to_port=20001
     ) -> None:
 
         self.local_ip = local_ip
@@ -66,9 +66,9 @@ class Server:
     def __init__(
         self,
         local_ip="127.0.0.1",
-        local_port=20002,
+        local_port=20001,
         remote_ip="127.0.0.1",
-        to_port=20001,
+        to_port=20002,
     ) -> None:
         self.local_ip = local_ip
         self.local_port = local_port
