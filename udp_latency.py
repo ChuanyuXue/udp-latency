@@ -53,9 +53,6 @@ class Client:
                 print('|  Client: %d  |  Packet: %d  |  Time: %d  |  Data size: %d  |' %
                       (self.local_port, self.packet_index, current_time, send_nums))
             self.packet_index += 1
-            # process_time = (time.time_ns() - current_time) * 1e-9
-            # wait_time = period - process_time if period > process_time else period
-            # time.sleep(wait_time)
             time.sleep(period)
 
         self._udp_socket.sendto(
@@ -115,8 +112,8 @@ class Server:
         latency_std = math.sqrt(var)
         jitter = sum(
             [abs(v - latency_list[i]) for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
-        bandwidth = sum([x[3] for x in self.log]) / \
-            ((self.log[-1][2] - self.log[0][2]) * 1e-9)
+        bandwidth = sum([x[4] for x in self.log]) / \
+            ((self.log[-1][3] - self.log[0][3]) * 1e-9)
         packet_loss = (
             max([x[0] for x in self.log]) - len(latency_list)) / max([x[0] for x in self.log])
 
@@ -146,7 +143,7 @@ class Server:
 
 if __name__ == "__main__":
     try:
-        opts, _ = getopt.getopt(sys.argv[1:], 'csf:n:t:b:', [
+        opts, _ = getopt.getopt(sys.argv[1:], 'csf:n:t:b:m:', [
                                 "verbose=", "save=", "ip=", "port="])
         opts = dict(opts)
         opts.setdefault('-f', "1")
@@ -159,12 +156,14 @@ if __name__ == "__main__":
         opts.setdefault('--save, "result.csv"')
 
     except getopt.GetoptError:
-        print('For Client --> udp_latency.py -c -f <frequency> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>')
+        print('For Client --> udp_latency.py -c -f <frequency> -m <bandwidth> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>')
         print('For Server --> udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --save <records saving path>')
         sys.exit(2)
 
     if '-c' in opts.keys():
         client = Client(remote_ip=opts['--ip'], to_port=int(opts['--port']))
+        if '-m' in opts:
+            opts['-f'] = int(opts['-m']) * 125000 / int(opts['-n'])
         if opts['-f'] == 'm':
             opts['-f'] = 0
         client.send(int(opts['-f']), int(opts['-n']),
