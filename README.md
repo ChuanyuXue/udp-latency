@@ -11,6 +11,7 @@ Compare with other existing latency testing tools.
 | ---------------------------- | -------------------------------------------------------- | ------------------------------------------------------ | ------------ | ------------------------- |
 | Support UDP                  | ✅                                                        | ❌                                                      | ❌            | ✅                         |
 | Flexible packet size         | ✅                                                        | ❌                                                      | ❌            | ❌                         |
+| Flexible bandwidth           | ✅                                                        | ❌                                                      | ❌            | ✅                         |
 | Specific sending frequency   | ✅                                                        | ✅                                                      | ✅            | ❌                         |
 | Simple as single Python file | ✅                                                        | ❌                                                      | ❌            | ❌                         |
 
@@ -18,7 +19,7 @@ Compare with other existing latency testing tools.
 
 ## Server Usage
 
-`python3 udp_latency.py -c -f <frequency> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>`
+`python3 udp_latency.py -c -f/m <frequency / bandwidth> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>`
 
 
 
@@ -34,7 +35,8 @@ Compare with other existing latency testing tools.
 | -------- | ------------------------------------------------------------ | ------------- |
 | -c       | Client                                                       | N/A           |
 | -s       | Server                                                       | N/A           |
-| -f       | Frequency of sending packets in clients, unit is Hz (number of packet per second). -f “m” means constantly send UDP packets in maximum bandwidth | 1             |
+| -f       | Frequency of sending packets from clients, unit is Hz (number of packet per second). -f “m” means constantly send UDP packets in maximum bandwidth | 1             |
+| -m       | Bandwidth of sending packets from clients, unit is Mbits. This argument will overwritten -f argument. | N/A           |
 | -n       | Size of sending packets in clients, unit is bytes. Notes that it is the frame size on wire including IP header and UDP header, the packet size should be within \(44, 1500\]. | 1500          |
 | -t       | Client running time, uint is second. The server also stops when client stops running. | 10            |
 | -b       | Buffer size in server.                                       | 1500          |

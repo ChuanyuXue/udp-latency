@@ -156,7 +156,7 @@ if __name__ == "__main__":
         opts.setdefault('--save, "result.csv"')
 
     except getopt.GetoptError:
-        print('For Client --> udp_latency.py -c -f <frequency> -m <bandwidth> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>')
+        print('For Client --> udp_latency.py -c -f/m <frequency / bandwidth> -m <bandwidth> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>')
         print('For Server --> udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --save <records saving path>')
         sys.exit(2)
 
