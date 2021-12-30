@@ -88,20 +88,23 @@ class Server:
         if verbose:
             print('|  ---------- Listen from Client %d ------------  |' %
                   self.to_port)
+        latency = 0
         while True:
             msg, _ = self._udp_socket.recvfrom(buffer_size)
             packet_index = int.from_bytes(msg[:4], 'big')
             send_time = int.from_bytes(msg[4:12], 'big')
             recv_time = time.time_ns()
+            old_latency = latency
             latency = round((recv_time - send_time) * 1e-9, 6)
+            jitter = abs(latency - old_latency)
             recv_size = len(msg)
             if packet_index == 0:
                 break
-            self.log.append([packet_index, latency, recv_time, recv_size])
+            self.log.append([packet_index, latency, jitter, recv_time, recv_size])
 
             if verbose:
-                print('|  Server: %d  |  Packet: %d  |  Latency: %f  |  Data size: %d  |' %
-                      (self.local_port, packet_index, latency, recv_size))
+                print('|  Server: %d  |  Packet: %d  |  Latency: %f ｜ Jitter: %f |  Data size: %d  |' %
+                      (self.local_port, packet_index, latency, jitter, recv_size))
 
     def evaluate(self):
         latency_list = [row[1] for row in self.log]
