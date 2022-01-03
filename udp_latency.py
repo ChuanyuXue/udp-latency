@@ -30,7 +30,7 @@ class Client:
 
     def synchronize(self, verbose):
         if verbose:
-            print('|  ---------- Sychonizing Server & Client ------------  |')
+            print('|  ---------- Sychonizing Server & Client by PTP ------------  |')
         for i in range(10):
             t1 = time.time_ns()
             time_bytes = t1.to_bytes(8, 'big')
@@ -43,7 +43,7 @@ class Client:
             msg, _ = self._udp_socket.recvfrom(1024)
             t2 = int.from_bytes(msg[4:12], 'big')
             t2_p = time.time_ns()
-            time.sleep(0.01)
+            time.sleep(0.05)
 
             index_bytes = (0).to_bytes(4, 'big')
             time_bytes = t2_p.to_bytes(8, 'big')
@@ -52,9 +52,6 @@ class Client:
             send_nums = self._udp_socket.sendto(
                 msg, (self.remote_ip, self.to_port))
             time.sleep(1)
-            
-
-
 
     def send(self, frequency, packet_size, running_time, verbose=True, sync= True):
         if sync:
@@ -118,13 +115,13 @@ class Server:
         
     def synchronize(self, verbose):
         if verbose:
-            print('|  ---------- Sychonizing Server & Client ------------  |')
+            print('|  ---------- Sychonizing Server & Client by PTP ------------  |')
         
         for i in range(10):
             msg, _ = self._udp_socket.recvfrom(1024)
             t1 = int.from_bytes(msg[4:12], 'big')
             t1_p = time.time_ns()
-            time.sleep(0.01)
+            time.sleep(0.05)
 
             t2 = time.time_ns()
             index_bytes = (0).to_bytes(4, 'big')
