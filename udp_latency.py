@@ -11,7 +11,7 @@ HEADER_SIZE = 32 + 4 + 8
 class Client:
     def __init__(
             self,
-            local_ip="127.0.0.1",
+            local_ip="0.0.0.0",
             local_port=20002,
             remote_ip="127.0.0.1",
             to_port=20001
@@ -26,8 +26,38 @@ class Client:
 
         self._udp_socket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        self._udp_socket.bind((self.local_ip, self.local_port))
+
+    def synchronize(self):
+        for i in range(10):
+            t1 = time.time_ns()
+            time_bytes = t1.to_bytes(8, 'big')
+            index_bytes = (0).to_bytes(4, 'big')
+            msg = b''
+            msg = index_bytes + time_bytes + msg
+            send_nums = self._udp_socket.sendto(
+                msg, (self.remote_ip, self.to_port))
+            
+            msg, _ = self._udp_socket.recvfrom(1024)
+            t2 = int.from_bytes(msg[4:12], 'big')
+            t2_p = time.time_ns()
+            time.sleep(0.01)
+
+            index_bytes = (0).to_bytes(4, 'big')
+            time_bytes = t2_p.to_bytes(8, 'big')
+            msg = b''
+            msg = index_bytes + time_bytes + msg
+            send_nums = self._udp_socket.sendto(
+                msg, (self.remote_ip, self.to_port))
+            time.sleep(1)
+            
+
+
 
     def send(self, frequency, packet_size, running_time, verbose=True):
+        
+        self.synchronize()
+
         if packet_size < HEADER_SIZE or packet_size > 1500:
             raise "Warning: packet size is not allowed larger than 1500 bytes (MTU size)"
 
@@ -66,7 +96,7 @@ class Client:
 class Server:
     def __init__(
         self,
-        local_ip="127.0.0.1",
+        local_ip="0.0.0.0",
         local_port=20001,
         remote_ip="127.0.0.1",
         to_port=20002,
@@ -77,11 +107,41 @@ class Server:
         self.to_port = to_port
         self.log = []
 
+        self.offset = []
+
         self._udp_socket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
-        self._udp_socket.bind((self.remote_ip, self.local_port))
+        self._udp_socket.bind((self.local_ip, self.local_port))
+        
+    def synchronize(self, verbose):
+        if verbose:
+            print('|  ---------- Sychonizing Server & Client ------------  |')
+        
+        for i in range(10):
+            msg, _ = self._udp_socket.recvfrom(1024)
+            t1 = int.from_bytes(msg[4:12], 'big')
+            t1_p = time.time_ns()
+            time.sleep(0.01)
+
+            t2 = time.time_ns()
+            index_bytes = (0).to_bytes(4, 'big')
+            time_bytes = t2.to_bytes(8, 'big')
+            msg = b''
+            msg = index_bytes + time_bytes + msg
+            send_nums = self._udp_socket.sendto(
+                msg, (self.remote_ip, self.to_port))
+
+            msg, _ = self._udp_socket.recvfrom(1024)
+            t2_p = int.from_bytes(msg[4:12], 'big')
+
+            offset = round(((t1_p - t1 + t2 - t2_p) / 2 )* 1e-9, 6)
+            self.offset.append(offset)
+            print('----- Offset at time %d second:  %f -----'%(i, offset))            
+
 
     def listen(self, buffer_size, verbose):
+        self.synchronize(True)
+
         if verbose:
             print('|  ---------- Listen from Client %d ------------  |' %
                   self.to_port)
