@@ -28,7 +28,9 @@ class Client:
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self._udp_socket.bind((self.local_ip, self.local_port))
 
-    def synchronize(self):
+    def synchronize(self, verbose):
+        if verbose:
+            print('|  ---------- Sychonizing Server & Client ------------  |')
         for i in range(10):
             t1 = time.time_ns()
             time_bytes = t1.to_bytes(8, 'big')
@@ -54,9 +56,9 @@ class Client:
 
 
 
-    def send(self, frequency, packet_size, running_time, verbose=True):
-        
-        self.synchronize()
+    def send(self, frequency, packet_size, running_time, verbose=True, sync= True):
+        if sync:
+            self.synchronize(verbose)
 
         if packet_size < HEADER_SIZE or packet_size > 1500:
             raise "Warning: packet size is not allowed larger than 1500 bytes (MTU size)"
@@ -108,6 +110,7 @@ class Server:
         self.log = []
 
         self.offset = []
+        self.OFFSET = None
 
         self._udp_socket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -136,11 +139,13 @@ class Server:
 
             offset = round(((t1_p - t1 + t2 - t2_p) / 2 )* 1e-9, 6)
             self.offset.append(offset)
-            print('----- Offset at time %d second:  %f -----'%(i, offset))            
+            print('----- Offset at time %d second:  %f -----'%(i, offset))  
+        self.OFFSET = sum(self.offset) / len(self.offset)  
 
 
-    def listen(self, buffer_size, verbose):
-        self.synchronize(True)
+    def listen(self, buffer_size, verbose, sync):
+        if sync:
+            self.synchronize(verbose)
 
         if verbose:
             print('|  ---------- Listen from Client %d ------------  |' %
@@ -152,7 +157,7 @@ class Server:
             send_time = int.from_bytes(msg[4:12], 'big')
             recv_time = time.time_ns()
             old_latency = latency
-            latency = round((recv_time - send_time) * 1e-9, 6)
+            latency = round((recv_time - send_time - self.OFFSET) * 1e-9, 6)
             jitter = abs(latency - old_latency)
             recv_size = len(msg)
             if packet_index == 0:
@@ -204,7 +209,7 @@ class Server:
 if __name__ == "__main__":
     try:
         opts, _ = getopt.getopt(sys.argv[1:], 'csf:n:t:b:m:', [
-                                "verbose=", "save=", "ip=", "port="])
+                                "verbose=", "save=", "ip=", "port=", "sync="])
         opts = dict(opts)
         opts.setdefault('-f', "1")
         opts.setdefault('-n', "1500")
@@ -214,10 +219,11 @@ if __name__ == "__main__":
         opts.setdefault('--port', "20001")
         opts.setdefault('--verbose', "True")
         opts.setdefault('--save, "result.csv"')
+        opts.setdefault('--sync', "True")
 
     except getopt.GetoptError:
-        print('For Client --> udp_latency.py -c -f/m <frequency / bandwidth> -m <bandwidth> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool>')
-        print('For Server --> udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --save <records saving path>')
+        print('For Client --> udp_latency.py -c -f/m <frequency / bandwidth> -m <bandwidth> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool> --sync <bool>')
+        print('For Server --> udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --sync <bool> --save <records saving path>')
         sys.exit(2)
 
     if '-c' in opts.keys():
@@ -227,11 +233,11 @@ if __name__ == "__main__":
         if opts['-f'] == 'm':
             opts['-f'] = 0
         client.send(int(opts['-f']), int(opts['-n']),
-                    int(opts['-t']), eval(opts['--verbose']))
+                    int(opts['-t']), eval(opts['--verbose']), sync = eval(opts['--sync']))
     if '-s' in opts.keys():
         server = Server(remote_ip=opts['--ip'], local_port=int(opts['--port']))
         server.listen(buffer_size=int(
-            opts['-b']), verbose=eval(opts['--verbose']))
+            opts['-b']), verbose=eval(opts['--verbose']), sync = eval(opts['--sync']))
         server.evaluate()
         if '--save' in opts.keys():
             server.save(opts['--save'])
