@@ -137,7 +137,11 @@ class Server:
             offset = round(((t1_p - t1 + t2 - t2_p) / 2 )* 1e-9, 6)
             self.offset.append(offset)
             print('----- Offset at time %d second:  %f -----'%(i, offset))  
-        self.OFFSET = sum(self.offset) / len(self.offset)  
+        abs_min = 1e9
+        for v in self.offset:
+            if abs(v) < abs_min:
+                abs_min = abs(v)
+                self.OFFSET = v
 
 
     def listen(self, buffer_size, verbose, sync):
