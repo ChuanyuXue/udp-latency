@@ -48,7 +48,7 @@ Compare with other existing latency testing tools.
 
 
 
-## How to do the synchronization
+## Time synchronization
 
 The basic idea is from [IEEE PTP](https://en.wikipedia.org/wiki/Precision_Time_Protocol) protocol.
 
