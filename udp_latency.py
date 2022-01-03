@@ -35,12 +35,12 @@ class Client:
             t1 = time.time_ns()
             time_bytes = t1.to_bytes(8, 'big')
             index_bytes = (0).to_bytes(4, 'big')
-            msg = b''
+            msg = b''.join([b'\x00'] * 128)
             msg = index_bytes + time_bytes + msg
             send_nums = self._udp_socket.sendto(
                 msg, (self.remote_ip, self.to_port))
             
-            msg, _ = self._udp_socket.recvfrom(1024)
+            msg, _ = self._udp_socket.recvfrom(128 + HEADER_SIZE)
             t2 = int.from_bytes(msg[4:12], 'big')
             t2_p = time.time_ns()
             time.sleep(0.05)
@@ -118,7 +118,7 @@ class Server:
             print('|  ---------- Sychonizing Server & Client by PTP ------------  |')
         
         for i in range(10):
-            msg, _ = self._udp_socket.recvfrom(1024)
+            msg, _ = self._udp_socket.recvfrom(128 + HEADER_SIZE)
             t1 = int.from_bytes(msg[4:12], 'big')
             t1_p = time.time_ns()
             time.sleep(0.05)
@@ -126,7 +126,7 @@ class Server:
             t2 = time.time_ns()
             index_bytes = (0).to_bytes(4, 'big')
             time_bytes = t2.to_bytes(8, 'big')
-            msg = b''
+            msg = b''.join([b'\x00'] * 128)
             msg = index_bytes + time_bytes + msg
             send_nums = self._udp_socket.sendto(
                 msg, (self.remote_ip, self.to_port))
@@ -159,6 +159,9 @@ class Server:
             recv_time = time.time_ns()
             old_latency = latency
             latency = round((recv_time - send_time) * 1e-9 - self.OFFSET, 6)
+            if sync and latency < 0:
+                self.OFFSET += latency 
+                latency = 0
             jitter = abs(latency - old_latency)
             recv_size = len(msg)
             if packet_index == 0:
