@@ -110,7 +110,7 @@ class Server:
         self.log = []
 
         self.offset = []
-        self.OFFSET = None
+        self.OFFSET = 0
 
         self._udp_socket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -157,7 +157,7 @@ class Server:
             send_time = int.from_bytes(msg[4:12], 'big')
             recv_time = time.time_ns()
             old_latency = latency
-            latency = round((recv_time - send_time - self.OFFSET) * 1e-9, 6)
+            latency = round((recv_time - send_time) * 1e-9 - self.OFFSET, 6)
             jitter = abs(latency - old_latency)
             recv_size = len(msg)
             if packet_index == 0:
