@@ -49,7 +49,7 @@ Compare with other existing latency testing tools.
 
 ## Time synchronization
 
-Udp-latency requires the synchronization (same clock time) between server and clients. The basic idea for built-in function is from [IEEE PTP](https://en.wikipedia.org/wiki/Precision_Time_Protocol) protocol.
+⚠️ Udp-latency requires the synchronization (same clock time) between server and clients. The basic idea for built-in function is from [IEEE PTP](https://en.wikipedia.org/wiki/Precision_Time_Protocol) protocol.
 
 ![ptp](https://upload.wikimedia.org/wikipedia/commons/d/db/IEEE1588_1.jpg)
 
