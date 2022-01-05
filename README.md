@@ -41,8 +41,8 @@ Compare with other existing latency testing tools.
 | -b        | Buffer size in server.                                                                                                                                                        | 1500          |
 | --ip      | Remote ip.                                                                                                                                                                    | 127.0.0.1     |
 | --port    | To port and local port for client and server respectively.                                                                                                                    | 20001         |
-| --verbose | Whether print the testing result each iteration.                                                                                                                              | True          |
-| --sync    | Whether do the pre-synchronization.                                                                                                                                           | True          |
+| --verbose | Whether to print the testing result each iteration.                                                                                                                              | True          |
+| --sync    | Whether to do the pre-synchronization.                                                                                                                                           | True          |
 | --save    | File path to save testing result.                                                                                                                                             | ./result.csv  |
 
 
