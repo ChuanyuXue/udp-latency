@@ -39,7 +39,7 @@ class Client:
             msg = index_bytes + time_bytes + msg
             send_nums = self._udp_socket.sendto(
                 msg, (self.remote_ip, self.to_port))
-            
+
             msg, _ = self._udp_socket.recvfrom(128 + HEADER_SIZE)
             t2 = int.from_bytes(msg[4:12], 'big')
             t2_p = time.time_ns()
@@ -53,7 +53,7 @@ class Client:
                 msg, (self.remote_ip, self.to_port))
             time.sleep(1)
 
-    def send(self, frequency, packet_size, running_time, verbose=True, sync= True):
+    def send(self, frequency, packet_size, running_time, verbose=True, sync=True):
         if sync:
             self.synchronize(verbose)
 
@@ -112,11 +112,11 @@ class Server:
         self._udp_socket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self._udp_socket.bind((self.local_ip, self.local_port))
-        
+
     def synchronize(self, verbose):
         if verbose:
             print('|  ---------- Sychonizing Server & Client by PTP ------------  |')
-        
+
         for i in range(10):
             msg, _ = self._udp_socket.recvfrom(128 + HEADER_SIZE)
             t1 = int.from_bytes(msg[4:12], 'big')
@@ -134,15 +134,14 @@ class Server:
             msg, _ = self._udp_socket.recvfrom(1024)
             t2_p = int.from_bytes(msg[4:12], 'big')
 
-            offset = round(((t1_p - t1 + t2 - t2_p) / 2 )* 1e-9, 6)
+            offset = round(((t1_p - t1 + t2 - t2_p) / 2) * 1e-9, 6)
             self.offset.append(offset)
-            print('----- Offset at time %d second:  %f -----'%(i, offset))  
+            print('----- Offset at time %d second:  %f -----' % (i, offset))
         abs_min = 1e9
         for v in self.offset:
             if abs(v) < abs_min:
                 abs_min = abs(v)
                 self.OFFSET = v
-
 
     def listen(self, buffer_size, verbose, sync):
         if sync:
@@ -159,14 +158,12 @@ class Server:
             recv_time = time.time_ns()
             old_latency = latency
             latency = round((recv_time - send_time) * 1e-9 - self.OFFSET, 6)
-            if sync and latency < 0:
-                self.OFFSET += latency 
-                latency = 0
             jitter = abs(latency - old_latency)
             recv_size = len(msg)
             if packet_index == 0:
                 break
-            self.log.append([packet_index, latency, jitter, recv_time, recv_size])
+            self.log.append(
+                [packet_index, latency, jitter, recv_time, recv_size])
 
             if verbose:
                 print('|  Server: %d  |  Packet: %d  |  Latency: %f ｜ Jitter: %f |  Data size: %d  |' %
@@ -237,11 +234,11 @@ if __name__ == "__main__":
         if opts['-f'] == 'm':
             opts['-f'] = 0
         client.send(int(opts['-f']), int(opts['-n']),
-                    int(opts['-t']), eval(opts['--verbose']), sync = eval(opts['--sync']))
+                    int(opts['-t']), eval(opts['--verbose']), sync=eval(opts['--sync']))
     if '-s' in opts.keys():
         server = Server(remote_ip=opts['--ip'], local_port=int(opts['--port']))
         server.listen(buffer_size=int(
-            opts['-b']), verbose=eval(opts['--verbose']), sync = eval(opts['--sync']))
+            opts['-b']), verbose=eval(opts['--verbose']), sync=eval(opts['--sync']))
         server.evaluate()
         if '--save' in opts.keys():
             server.save(opts['--save'])
