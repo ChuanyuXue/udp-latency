@@ -2,7 +2,7 @@
 A tiny end-to-end latency testing tool implemented by UDP protocol in Python 📈. 
 
 - **udp_latency** records one way latency.
-- **udp_rrt** records two way average of latency, which has same argument as udp_latency.
+- **udp_rrt** records two way average of latency, which has same arguments as udp_latency.
 
 
 
@@ -57,6 +57,8 @@ Compare with other existing latency testing tools.
 ![ptp](https://upload.wikimedia.org/wikipedia/commons/d/db/IEEE1588_1.jpg)
 
 In the first 10 seconds before latency test, PTP events are exchanged per second for calculating **time offset** between server and clients. To aviod the impact of exchanging PTP packet on experimental traffic, udp-latency assumes that time offset keeps constant during the test.
+
+Udp-rrt requirest no synchronization.
 
 
 
