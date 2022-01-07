@@ -235,6 +235,7 @@ if __name__ == "__main__":
             opts['-f'] = 0
         client.send(int(opts['-f']), int(opts['-n']),
                     int(opts['-t']), eval(opts['--verbose']), sync=eval(opts['--sync']))
+                    
     if '-s' in opts.keys():
         server = Server(remote_ip=opts['--ip'], local_port=int(opts['--port']))
         server.listen(buffer_size=int(
