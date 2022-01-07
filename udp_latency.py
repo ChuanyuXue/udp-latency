@@ -61,18 +61,18 @@ class Client:
             raise "Warning: packet size is not allowed larger than 1500 bytes (MTU size)"
 
         _payload_size = packet_size - HEADER_SIZE
+        _fill = b''.join([b'\x00'] * (_payload_size))
 
         start_time = time.time_ns()
         running_time = running_time * 1e9
         period = 1 / frequency if frequency else 0
+
         while True:
-            current_time = time.time_ns()
             index_bytes = self.packet_index.to_bytes(4, 'big')
+            current_time = time.time_ns()
             time_bytes = current_time.to_bytes(8, 'big')
-            msg = b''.join([b'\x00'] * (_payload_size))
-            msg = index_bytes + time_bytes + msg
             send_nums = self._udp_socket.sendto(
-                msg, (self.remote_ip, self.to_port))
+                index_bytes + time_bytes + _fill, (self.remote_ip, self.to_port))
             self.log.append([self.packet_index, current_time, send_nums])
 
             if (current_time - start_time) > running_time:
@@ -153,9 +153,9 @@ class Server:
         latency = 0
         while True:
             msg, _ = self._udp_socket.recvfrom(buffer_size)
+            recv_time = time.time_ns()
             packet_index = int.from_bytes(msg[:4], 'big')
             send_time = int.from_bytes(msg[4:12], 'big')
-            recv_time = time.time_ns()
             old_latency = latency
             latency = round((recv_time - send_time) * 1e-9 - self.OFFSET, 6)
             jitter = abs(latency - old_latency)
