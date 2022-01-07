@@ -1,8 +1,8 @@
 # udp-latency
 A tiny end-to-end latency testing tool implemented by UDP protocol in Python 📈. 
 
-- **udp_latency** records one way latency.
-- **udp_rrt** records two way average of latency, which has same arguments as udp_latency.
+- **udp_latency.py** records one way latency.
+- **udp_rrt.py** records two way average of latency, which has same arguments as udp_latency.
 
 
 
