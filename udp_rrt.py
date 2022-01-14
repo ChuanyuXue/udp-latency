@@ -8,6 +8,7 @@ from multiprocessing import Process, Queue
 
 HEADER_SIZE = 32 + 4 + 8
 
+
 class Client:
     def __init__(
             self,
@@ -28,7 +29,7 @@ class Client:
         self._udp_socket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self._udp_socket.bind((self.local_ip, self.local_port))
-    
+
     def send(self, frequency, packet_size, running_time):
         if packet_size < HEADER_SIZE or packet_size > 1500:
             raise "Warning: packet size is not allowed larger than 1500 bytes (MTU size)"
@@ -64,7 +65,7 @@ class Client:
             recv_time = time.time_ns()
             packet_index = int.from_bytes(msg[:4], 'big')
             send_time = int.from_bytes(msg[4:12], 'big')
-            
+
             old_latency = latency
             latency = round(((recv_time - send_time) * 1e-9) / 2, 6)
             jitter = abs(latency - old_latency)
@@ -112,7 +113,7 @@ class Server:
                 break
 
             if verbose:
-                print("Receive message at time %d"%recv_time)
+                print("Receive message at time %d" % recv_time)
 
     def send(self, packet_size, verbose, q):
         if packet_size < HEADER_SIZE or packet_size > 1500:
@@ -125,20 +126,19 @@ class Server:
             index_bytes = packet_index.to_bytes(4, 'big')
             current_time = time.time_ns()
             time_bytes = (current_time + time_diff).to_bytes(8, 'big')
-            
+
             msg = index_bytes + time_bytes + _fill
             self._udp_socket.sendto(
                 msg, (self.remote_ip, self.to_port))
 
             if packet_index == 0:
                 break
-            
+
             if verbose:
-                print("Send message at time %d"%current_time)
+                print("Send message at time %d" % current_time)
 
     def __del__(self):
         self._udp_socket.close()
-
 
 
 if __name__ == "__main__":
@@ -167,19 +167,22 @@ if __name__ == "__main__":
         if opts['-f'] == 'm':
             opts['-f'] = 0
 
-        listen_process = Process(target=client.listen, args = (int(opts['-b']), eval(opts['--verbose'])))
+        listen_process = Process(target=client.listen, args=(
+            int(opts['-b']), eval(opts['--verbose'])))
 
         listen_process.start()
         client.send(int(opts['-f']), int(opts['-n']),
                     int(opts['-t']))
         listen_process.join()
-        
+        listen_process.close()
 
     if '-s' in opts.keys():
         server = Server(remote_ip=opts['--ip'], local_port=int(opts['--port']))
         q = Queue()
 
-        listen_process = Process(target=server.listen, args=(int(opts['-b']), eval(opts['--verbose']), q))
+        listen_process = Process(target=server.listen, args=(
+            int(opts['-b']), eval(opts['--verbose']), q))
         listen_process.start()
         server.send(int(opts['-n']), eval(opts['--verbose']), q)
-        listen_process.join
+        listen_process.join()
+        listen_process.close()
