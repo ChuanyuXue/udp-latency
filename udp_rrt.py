@@ -58,7 +58,7 @@ class Client:
             (0).to_bytes(4, 'big'), (self.remote_ip, self.to_port))
         self._udp_socket.close()
 
-    def listen(self, buffer_size, verbose):
+    def listen(self, buffer_size, verbose, save=False):
         latency = 0
         while True:
             msg, _ = self._udp_socket.recvfrom(buffer_size)
@@ -76,8 +76,46 @@ class Client:
                 [packet_index, latency, jitter, recv_time, recv_size])
 
             if verbose:
-                print('|  Server: %d  |  Packet: %d  |  Latency: %f ｜ Jitter: %f |  Data size: %d  |' %
+                print('[  Server: %d  |  Packet: %6d  |  Latency: %f ｜ Jitter: %f |  Data size: %4d  ]' %
                       (self.local_port, packet_index, latency, jitter, recv_size))
+
+        self.evaluate()
+        if self.save:
+            self.save(save)
+
+    def evaluate(self):
+        latency_list = [row[1] for row in self.receive_log]
+        latency_max = max(latency_list)
+        latency_avg = sum(latency_list) / len(latency_list)
+        var = sum(pow(x - latency_avg, 2)
+                  for x in latency_list) / len(latency_list)
+        latency_std = math.sqrt(var)
+        jitter = sum(
+            [abs(v - latency_list[i]) for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
+        bandwidth = sum([x[4] for x in self.receive_log]) / \
+            ((self.receive_log[-1][3] - self.receive_log[0][3]) * 1e-9)
+        packet_loss = (
+            max([x[0] for x in self.receive_log]) - len(latency_list)) / max([x[0] for x in self.receive_log])
+
+        print('| -------------  Summary  --------------- |')
+        print('Average latency: %f second' % latency_avg)
+        print('Maximum latency: %f second' % latency_max)
+        print('Std latency: %f second' % latency_std)
+        print('bandwidth: %f Mbits' % (bandwidth * 0.000008))
+        print('Jitter: %f second' % jitter)
+        print('Packet loss: %f' % packet_loss)
+        return {
+            'latency_max': latency_max,
+            'latency_avg': latency_avg,
+            'jitter': jitter,
+            'bandwidth': bandwidth,
+        }
+
+    def save(self, path):
+        with open(path, 'w') as f:
+            writer = csv.writer(f, delimiter=',')
+            content = [['index', 'latency', 'recv-time', 'recv-size']]
+            writer.writerows(content + self.receive_log)
 
     def __del__(self):
         self._udp_socket.close()
@@ -153,7 +191,7 @@ if __name__ == "__main__":
         opts.setdefault('--ip', "127.0.0.1")
         opts.setdefault('--port', "20001")
         opts.setdefault('--verbose', "True")
-        opts.setdefault('--save, "result.csv"')
+        opts.setdefault('--save', "result.csv")
 
     except getopt.GetoptError:
         print('For Client --> udp_latency.py -c -f/m <frequency / bandwidth> -m <bandwidth> -n <packet size> -t <running time> -b <buffer size> --ip <remote ip> --port <to port> --verbose <bool> --save <records saving path>')
@@ -168,11 +206,12 @@ if __name__ == "__main__":
             opts['-f'] = 0
 
         listen_process = Process(target=client.listen, args=(
-            int(opts['-b']), eval(opts['--verbose'])))
+            int(opts['-b']), eval(opts['--verbose']), opts["--save"]))
 
         listen_process.start()
         client.send(int(opts['-f']), int(opts['-n']),
                     int(opts['-t']))
+
         listen_process.join()
         listen_process.close()
 

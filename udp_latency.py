@@ -166,7 +166,7 @@ class Server:
                 [packet_index, latency, jitter, recv_time, recv_size])
 
             if verbose:
-                print('|  Server: %d  |  Packet: %d  |  Latency: %f ｜ Jitter: %f |  Data size: %d  |' %
+                print('[  Server: %d  |  Packet: %6d  |  Latency: %f ｜ Jitter: %f |  Data size: %4d  ]' %
                       (self.local_port, packet_index, latency, jitter, recv_size))
 
     def evaluate(self):
@@ -235,7 +235,7 @@ if __name__ == "__main__":
             opts['-f'] = 0
         client.send(int(opts['-f']), int(opts['-n']),
                     int(opts['-t']), eval(opts['--verbose']), sync=eval(opts['--sync']))
-                    
+
     if '-s' in opts.keys():
         server = Server(remote_ip=opts['--ip'], local_port=int(opts['--port']))
         server.listen(buffer_size=int(
