@@ -114,7 +114,7 @@ class Client:
     def save(self, path):
         with open(path, 'w') as f:
             writer = csv.writer(f, delimiter=',')
-            content = [['index', 'latency', 'recv-time', 'recv-size']]
+            content = [['index', 'latency', 'jitter', 'recv-time', 'recv-size']]
             writer.writerows(content + self.receive_log)
 
     def __del__(self):
