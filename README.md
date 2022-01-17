@@ -45,7 +45,7 @@ Compare with other existing latency testing tools.
 | --ip      | Remote ip.                                                                                                                                                                    | 127.0.0.1     |
 | --port    | To port and local port for client and server respectively.                                                                                                                    | 20001         |
 | --verbose | Whether to print the testing result each iteration.                                                                                                                              | True          |
-| --sync    | Whether to do the time synchronization in advance.                                                                                                                                           | True          |
+| --sync    | Whether to do the time synchronization in advance.  (only for udp_latency.py)                                                                                                                                       | True          |
 | --save    | File path to save testing result.                                                                                                                                             | ./result.csv  |
 
 
