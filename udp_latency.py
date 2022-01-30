@@ -64,8 +64,9 @@ class Client:
         _fill = b''.join([b'\x00'] * (_payload_size))
 
         start_time = time.time_ns()
+        total_packets = frequency * running_time
         running_time = running_time * 1e9
-        period = 1 / frequency if frequency else 0
+        period = 1 / frequency
 
         while True:
             index_bytes = self.packet_index.to_bytes(4, 'big')
@@ -75,14 +76,21 @@ class Client:
                 index_bytes + time_bytes + _fill, (self.remote_ip, self.to_port))
             self.log.append([self.packet_index, current_time, send_nums])
 
-            if (current_time - start_time) > running_time:
+            if (current_time - start_time) > running_time or self.packet_index >= total_packets:
                 break
 
             if verbose:
                 print('|  Client: %d  |  Packet: %d  |  Time: %d  |  Data size: %d  |' %
                       (self.local_port, self.packet_index, current_time, send_nums))
             self.packet_index += 1
-            time.sleep(period)
+
+            prac_period = (running_time - (current_time - start_time)
+                           ) / (total_packets - len(self.log)) * (len(self.log) / (frequency * (current_time - start_time) * 1e-9)) * 1e-9
+            if prac_period > period:
+                prac_period = period
+
+            time.sleep(prac_period)
+            # time.sleep(period)
 
         self._udp_socket.sendto(
             (0).to_bytes(4, 'big'), (self.remote_ip, self.to_port))
@@ -178,12 +186,14 @@ class Server:
         latency_std = math.sqrt(var)
         jitter = sum(
             [abs(v - latency_list[i]) for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
-        bandwidth = sum([x[4] for x in self.log]) / \
-            ((self.log[-1][3] - self.log[0][3]) * 1e-9)
+        cycle = (self.log[-1][3] - self.log[0][3]) * 1e-9
+        bandwidth = sum([x[4] + 32 for x in self.log]) / cycle
         packet_loss = (
             max([x[0] for x in self.log]) - len(latency_list)) / max([x[0] for x in self.log])
 
         print('| -------------  Summary  --------------- |')
+        print('Total %d packets are received in %f seconds' %
+              (len(self.log), cycle))
         print('Average latency: %f second' % latency_avg)
         print('Maximum latency: %f second' % latency_max)
         print('Std latency: %f second' % latency_std)
@@ -232,12 +242,13 @@ if __name__ == "__main__":
         if '-m' in opts:
             opts['-f'] = int(opts['-m']) * 125000 / int(opts['-n'])
         if opts['-f'] == 'm':
-            opts['-f'] = 0
-        client.send(int(opts['-f']), int(opts['-n']),
+            opts['-f'] = math.inf
+        client.send(float(opts['-f']), int(opts['-n']),
                     int(opts['-t']), eval(opts['--verbose']), sync=eval(opts['--sync']))
 
     if '-s' in opts.keys():
-        server = Server(remote_ip=opts['--ip'], local_port=int(opts['--port']))
+        server = Server(remote_ip=opts['--ip'],
+                        local_port=int(opts['--port']))
         server.listen(buffer_size=int(
             opts['-b']), verbose=eval(opts['--verbose']), sync=eval(opts['--sync']))
         server.evaluate()

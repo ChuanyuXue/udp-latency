@@ -37,8 +37,9 @@ class Client:
         _payload_size = packet_size - HEADER_SIZE
 
         start_time = time.time_ns()
+        total_packets = frequency * running_time
         running_time = running_time * 1e9
-        period = 1 / frequency if frequency else 0
+        period = 1 / frequency
         _fill = b''.join([b'\x00'] * (_payload_size))
 
         while True:
@@ -49,10 +50,16 @@ class Client:
                 msg, (self.remote_ip, self.to_port))
             self.send_log.append([self.packet_index, current_time, send_nums])
 
-            if (current_time - start_time) > running_time:
+            if (current_time - start_time) > running_time or self.packet_index >= total_packets:
                 break
             self.packet_index += 1
-            time.sleep(period)
+
+            prac_period = (running_time - (current_time - start_time)
+                           ) / (total_packets - len(self.send_log)) * (len(self.send_log) / (frequency * (current_time - start_time) * 1e-9)) * 1e-9
+            if prac_period > period:
+                prac_period = period
+            time.sleep(prac_period)
+            # time.sleep(period)
 
         self._udp_socket.sendto(
             (0).to_bytes(4, 'big'), (self.remote_ip, self.to_port))
@@ -92,12 +99,14 @@ class Client:
         latency_std = math.sqrt(var)
         jitter = sum(
             [abs(v - latency_list[i]) for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
-        bandwidth = sum([x[4] for x in self.receive_log]) / \
-            ((self.receive_log[-1][3] - self.receive_log[0][3]) * 1e-9)
+        cycle = (self.receive_log[-1][3] - self.receive_log[0][3]) * 1e-9
+        bandwidth = sum([x[4] + 32 for x in self.receive_log]) / cycle
         packet_loss = (
             max([x[0] for x in self.receive_log]) - len(latency_list)) / max([x[0] for x in self.receive_log])
 
         print('| -------------  Summary  --------------- |')
+        print('Total %d packets are received in %f seconds' %
+              (len(self.receive_log), cycle))
         print('Average latency: %f second' % latency_avg)
         print('Maximum latency: %f second' % latency_max)
         print('Std latency: %f second' % latency_std)
@@ -203,13 +212,13 @@ if __name__ == "__main__":
         if '-m' in opts:
             opts['-f'] = int(opts['-m']) * 125000 / int(opts['-n'])
         if opts['-f'] == 'm':
-            opts['-f'] = 0
+            opts['-f'] = math.inf
 
         listen_process = Process(target=client.listen, args=(
             int(opts['-b']), eval(opts['--verbose']), opts["--save"]))
 
         listen_process.start()
-        client.send(int(opts['-f']), int(opts['-n']),
+        client.send(float(opts['-f']), int(opts['-n']),
                     int(opts['-t']))
 
         listen_process.join()
