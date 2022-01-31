@@ -78,7 +78,7 @@ DecayedRate = \frac{CurrentFrequency}{Global Frequency}
 $$
 Where $CurrenctFrequency$ is the average frequency from program beginning to current time. $GlobalFrequency$ is the frequency user set with `-f` or `-m` argument. $RunningTime$ and $RemainingTime$ is the time from programming beginning time and time to programming ending time defined by `-t` argument respectively.
 
-Due to locally test through `127.0.0.1` the precision difference can be limited within $1\% $, the difference can be $30\% $ before dynamic adaption.
+Due to locally test through `127.0.0.1` the precision difference can be limited within 1%, the difference can be 30% before dynamic adaption.
 
 ## Contact
 
