@@ -91,8 +91,8 @@ class Client:
 
             if dyna:
                 prac_period = (running_time - (current_time - start_time)) / (
-                    total_packets - len(self.send_log)) * (
-                        len(self.send_log) /
+                    total_packets - len(self.log)) * (
+                        len(self.log) /
                         (frequency *
                          (current_time - start_time) * 1e-9)) * 1e-9
                 prac_period = period if prac_period > period else prac_period
