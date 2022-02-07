@@ -33,24 +33,25 @@ Compare with other existing latency testing tools.
 
 ## Arguments
 
-| Argument  | Description                                                                                                                                                                   | Default value |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| -c        | Client                                                                                                                                                                        | N/A           |
-| -s        | Server                                                                                                                                                                        | N/A           |
-| -f        | Frequency of sending packets from clients, unit is Hz (number of packet per second). -f “m” means constantly send UDP packets in maximum bandwidth                            | 1             |
-| -m        | Bandwidth of sending packets from clients, unit is Mbits. This argument will overwritten -f argument.                                                                         | N/A           |
+| Argument  | Description                                                  | Default value |
+| --------- | ------------------------------------------------------------ | ------------- |
+| -c        | Client                                                       | N/A           |
+| -s        | Server                                                       | N/A           |
+| -f        | Frequency of sending packets from clients, unit is Hz (number of packet per second). -f “m” means constantly send UDP packets in maximum bandwidth | 1             |
+| -m        | Bandwidth of sending packets from clients, unit is Mbits. This argument will overwritten -f argument. | N/A           |
 | -n        | Size of sending packets in clients, unit is bytes. Notes that it is the frame size on wire including IP header and UDP header, the packet size should be within \(44, 1500\]. | 1500          |
-| -t        | Client running time, uint is second. The server also stops when client stops running.                                                                                         | 10            |
-| -b        | Buffer size in server.                                                                                                                                                        | 1500          |
-| --ip      | Remote ip.                                                                                                                                                                    | 127.0.0.1     |
-| --port    | To port and local port for client and server respectively.                                                                                                                    | 20001         |
-| --verbose | Whether to print the testing result each iteration.                                                                                                                              | True          |
-| --sync    | Whether to do the time synchronization in advance.  (only for udp_latency.py)                                                                                                                                       | True          |
-| --save    | File path to save testing result.                                                                                                                                             | ./result.csv  |
+| -t        | Client running time, uint is second. The server also stops when client stops running. | 10            |
+| -b        | Buffer size in server.                                       | 1500          |
+| --ip      | Remote ip.                                                   | 127.0.0.1     |
+| --port    | To port and local port for client and server respectively.   | 20001         |
+| --verbose | Whether to print the testing result each iteration.          | True          |
+| --sync    | Whether to do the time synchronization in advance.  (only for udp_latency.py) | True          |
+| --dyna    | Whether to use dynamic bandwidth adaption.                   | True          |
+| --save    | File path to save testing result.                            | ./result.csv  |
 
 
 
-## Time synchronization
+## Time synchronization (--sync)
 
 ⚠️ Udp-latency requires the precise synchronization (same clock time) between server and clients. The basic idea for built-in function is from [IEEE PTP](https://en.wikipedia.org/wiki/Precision_Time_Protocol) protocol.
 
@@ -62,9 +63,11 @@ Udp-rrt requirest no synchronization.
 
 
 
-## Dynamic adaption
+## Dynamic adaption (--dyna)
 
-⚠️  Due to the processing delay is non-deterministic on normal operation systems as following figure, it is possible that the sending frequency is significantly slow than the expected.
+⚠️  This method will slightly damage the periodicity. (Make periodic traffic sproidic)
+
+Due to the processing delay is non-deterministic on normal operation systems as following figure, it is possible that the sending frequency is significantly slow than the expected.
 
 ![figure](https://www.researchgate.net/profile/Joan-Feigenbaum/publication/221655613/figure/fig7/AS:394046808838155@1470959488690/Processing-delay-distribution.png)
 

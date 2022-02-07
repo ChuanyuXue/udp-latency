@@ -9,13 +9,12 @@ HEADER_SIZE = 32 + 4 + 8
 
 
 class Client:
-    def __init__(
-            self,
-            local_ip="0.0.0.0",
-            local_port=20002,
-            remote_ip="127.0.0.1",
-            to_port=20001
-    ) -> None:
+
+    def __init__(self,
+                 local_ip="0.0.0.0",
+                 local_port=20002,
+                 remote_ip="127.0.0.1",
+                 to_port=20001) -> None:
 
         self.local_ip = local_ip
         self.local_port = local_port
@@ -24,21 +23,23 @@ class Client:
         self.log = []
         self.packet_index = 1
 
-        self._udp_socket = socket.socket(
-            family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        self._udp_socket = socket.socket(family=socket.AF_INET,
+                                         type=socket.SOCK_DGRAM)
         self._udp_socket.bind((self.local_ip, self.local_port))
 
     def synchronize(self, verbose):
         if verbose:
-            print('|  ---------- Sychonizing Server & Client by PTP ------------  |')
+            print(
+                '|  ---------- Sychonizing Server & Client by PTP ------------  |'
+            )
         for i in range(10):
             t1 = time.time_ns()
             time_bytes = t1.to_bytes(8, 'big')
             index_bytes = (0).to_bytes(4, 'big')
             msg = b''.join([b'\x00'] * 128)
             msg = index_bytes + time_bytes + msg
-            send_nums = self._udp_socket.sendto(
-                msg, (self.remote_ip, self.to_port))
+            send_nums = self._udp_socket.sendto(msg,
+                                                (self.remote_ip, self.to_port))
 
             msg, _ = self._udp_socket.recvfrom(128 + HEADER_SIZE)
             t2 = int.from_bytes(msg[4:12], 'big')
@@ -49,11 +50,11 @@ class Client:
             time_bytes = t2_p.to_bytes(8, 'big')
             msg = b''
             msg = index_bytes + time_bytes + msg
-            send_nums = self._udp_socket.sendto(
-                msg, (self.remote_ip, self.to_port))
+            send_nums = self._udp_socket.sendto(msg,
+                                                (self.remote_ip, self.to_port))
             time.sleep(1)
 
-    def send(self, frequency, packet_size, running_time, verbose=True, sync=True):
+    def send(self, frequency, packet_size, running_time, verbose, sync, dyna):
         if sync:
             self.synchronize(verbose)
 
@@ -73,27 +74,36 @@ class Client:
             current_time = time.time_ns()
             time_bytes = current_time.to_bytes(8, 'big')
             send_nums = self._udp_socket.sendto(
-                index_bytes + time_bytes + _fill, (self.remote_ip, self.to_port))
+                index_bytes + time_bytes + _fill,
+                (self.remote_ip, self.to_port))
             self.log.append([self.packet_index, current_time, send_nums])
 
-            if (current_time - start_time) > running_time or self.packet_index >= total_packets:
+            if (current_time - start_time
+                ) > running_time or self.packet_index >= total_packets:
                 break
 
             if verbose:
-                print('|  Client: %d  |  Packet: %d  |  Time: %d  |  Data size: %d  |' %
-                      (self.local_port, self.packet_index, current_time, send_nums))
+                print(
+                    '|  Client: %d  |  Packet: %d  |  Time: %d  |  Data size: %d  |'
+                    % (self.local_port, self.packet_index, current_time,
+                       send_nums))
             self.packet_index += 1
 
-            prac_period = (running_time - (current_time - start_time)
-                           ) / (total_packets - len(self.log)) * (len(self.log) / (frequency * (current_time - start_time) * 1e-9)) * 1e-9
-            if prac_period > period:
+            if dyna:
+                prac_period = (running_time - (current_time - start_time)) / (
+                    total_packets - len(self.send_log)) * (
+                        len(self.send_log) /
+                        (frequency *
+                         (current_time - start_time) * 1e-9)) * 1e-9
+                prac_period = period if prac_period > period else prac_period
+            else:
                 prac_period = period
 
             time.sleep(prac_period)
             # time.sleep(period)
 
-        self._udp_socket.sendto(
-            (0).to_bytes(4, 'big'), (self.remote_ip, self.to_port))
+        self._udp_socket.sendto((0).to_bytes(4, 'big'),
+                                (self.remote_ip, self.to_port))
         self._udp_socket.close()
 
     def __del__(self):
@@ -101,6 +111,7 @@ class Client:
 
 
 class Server:
+
     def __init__(
         self,
         local_ip="0.0.0.0",
@@ -117,13 +128,15 @@ class Server:
         self.offset = []
         self.OFFSET = 0
 
-        self._udp_socket = socket.socket(
-            family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        self._udp_socket = socket.socket(family=socket.AF_INET,
+                                         type=socket.SOCK_DGRAM)
         self._udp_socket.bind((self.local_ip, self.local_port))
 
     def synchronize(self, verbose):
         if verbose:
-            print('|  ---------- Sychonizing Server & Client by PTP ------------  |')
+            print(
+                '|  ---------- Sychonizing Server & Client by PTP ------------  |'
+            )
 
         for i in range(10):
             msg, _ = self._udp_socket.recvfrom(128 + HEADER_SIZE)
@@ -136,8 +149,8 @@ class Server:
             time_bytes = t2.to_bytes(8, 'big')
             msg = b''.join([b'\x00'] * 128)
             msg = index_bytes + time_bytes + msg
-            send_nums = self._udp_socket.sendto(
-                msg, (self.remote_ip, self.to_port))
+            send_nums = self._udp_socket.sendto(msg,
+                                                (self.remote_ip, self.to_port))
 
             msg, _ = self._udp_socket.recvfrom(1024)
             t2_p = int.from_bytes(msg[4:12], 'big')
@@ -174,8 +187,10 @@ class Server:
                 [packet_index, latency, jitter, recv_time, recv_size])
 
             if verbose:
-                print('[  Server: %d  |  Packet: %6d  |  Latency: %f ｜ Jitter: %f |  Data size: %4d  ]' %
-                      (self.local_port, packet_index, latency, jitter, recv_size))
+                print(
+                    '[  Server: %d  |  Packet: %6d  |  Latency: %f ｜ Jitter: %f |  Data size: %4d  ]'
+                    % (self.local_port, packet_index, latency, jitter,
+                       recv_size))
 
     def evaluate(self):
         latency_list = [row[1] for row in self.log]
@@ -185,11 +200,13 @@ class Server:
                   for x in latency_list) / len(latency_list)
         latency_std = math.sqrt(var)
         jitter = sum(
-            [abs(v - latency_list[i]) for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
+            [abs(v - latency_list[i])
+             for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
         cycle = (self.log[-1][3] - self.log[0][3]) * 1e-9
         bandwidth = sum([x[4] + 32 for x in self.log]) / cycle
-        packet_loss = (
-            max([x[0] for x in self.log]) - len(latency_list)) / max([x[0] for x in self.log])
+        packet_loss = (max([x[0]
+                            for x in self.log]) - len(latency_list)) / max(
+                                [x[0] for x in self.log])
 
         print('| -------------  Summary  --------------- |')
         print('Total %d packets are received in %f seconds' %
@@ -210,7 +227,9 @@ class Server:
     def save(self, path):
         with open(path, 'w') as f:
             writer = csv.writer(f, delimiter=',')
-            content = [['index', 'latency', 'jitter', 'recv-time', 'recv-size']]
+            content = [[
+                'index', 'latency', 'jitter', 'recv-time', 'recv-size'
+            ]]
             writer.writerows(content + self.log)
 
     def __del__(self):
@@ -219,8 +238,9 @@ class Server:
 
 if __name__ == "__main__":
     try:
-        opts, _ = getopt.getopt(sys.argv[1:], 'csf:n:t:b:m:', [
-                                "verbose=", "save=", "ip=", "port=", "sync="])
+        opts, _ = getopt.getopt(
+            sys.argv[1:], 'csf:n:t:b:m:',
+            ["verbose=", "save=", "ip=", "port=", "sync=", "dyna="])
         opts = dict(opts)
         opts.setdefault('-f', "1")
         opts.setdefault('-n', "1500")
@@ -230,11 +250,16 @@ if __name__ == "__main__":
         opts.setdefault('--port', "20001")
         opts.setdefault('--verbose', "True")
         opts.setdefault('--save, "result.csv"')
+        opts.setdefault('--dyna', "True")
         opts.setdefault('--sync', "True")
 
     except getopt.GetoptError:
-        print('For Client --> udp_latency.py -c -f/m <frequency / bandwidth> -m <bandwidth> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool> --sync <bool>')
-        print('For Server --> udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --sync <bool> --save <records saving path>')
+        print(
+            'For Client --> udp_latency.py -c -f/m <frequency / bandwidth> -m <bandwidth> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool> --sync <bool>'
+        )
+        print(
+            'For Server --> udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --sync <bool> --save <records saving path>'
+        )
         sys.exit(2)
 
     if '-c' in opts.keys():
@@ -243,14 +268,18 @@ if __name__ == "__main__":
             opts['-f'] = int(opts['-m']) * 125000 / int(opts['-n'])
         if opts['-f'] == 'm':
             opts['-f'] = math.inf
-        client.send(float(opts['-f']), int(opts['-n']),
-                    int(opts['-t']), eval(opts['--verbose']), sync=eval(opts['--sync']))
+        client.send(float(opts['-f']),
+                    int(opts['-n']),
+                    int(opts['-t']),
+                    eval(opts['--verbose']),
+                    sync=eval(opts['--sync']),
+                    dyna=eval(opts['--dyna']))
 
     if '-s' in opts.keys():
-        server = Server(remote_ip=opts['--ip'],
-                        local_port=int(opts['--port']))
-        server.listen(buffer_size=int(
-            opts['-b']), verbose=eval(opts['--verbose']), sync=eval(opts['--sync']))
+        server = Server(remote_ip=opts['--ip'], local_port=int(opts['--port']))
+        server.listen(buffer_size=int(opts['-b']),
+                      verbose=eval(opts['--verbose']),
+                      sync=eval(opts['--sync']))
         server.evaluate()
         if '--save' in opts.keys():
             server.save(opts['--save'])
