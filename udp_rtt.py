@@ -228,7 +228,7 @@ if __name__ == "__main__":
     if '-c' in opts.keys():
         client = Client(remote_ip=opts['--ip'], to_port=int(opts['--port']))
         if '-m' in opts:
-            opts['-f'] = int(opts['-m']) * 125000 / int(opts['-n'])
+            opts['-f'] = float(opts['-m']) * 125000 / int(opts['-n'])
         if opts['-f'] == 'm':
             opts['-f'] = math.inf
 
