@@ -120,7 +120,7 @@ class Client:
         print('Average latency: %f second' % latency_avg)
         print('Maximum latency: %f second' % latency_max)
         print('Std latency: %f second' % latency_std)
-        print('bandwidth: %f Mbits' % (bandwidth * 0.000008))
+        print('bandwidth: %f Mbits' % (bandwidth * 8 / 1024 / 1024))
         print('Jitter: %f second' % jitter)
         print('Packet loss: %f' % packet_loss)
         return {
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     if '-c' in opts.keys():
         client = Client(remote_ip=opts['--ip'], to_port=int(opts['--port']))
         if '-m' in opts:
-            opts['-f'] = float(opts['-m']) * 125000 / int(opts['-n'])
+            opts['-f'] = int(opts['-m']) * 125000 / int(opts['-n'])
         if opts['-f'] == 'm':
             opts['-f'] = math.inf
 

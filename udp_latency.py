@@ -214,7 +214,7 @@ class Server:
         print('Average latency: %f second' % latency_avg)
         print('Maximum latency: %f second' % latency_max)
         print('Std latency: %f second' % latency_std)
-        print('bandwidth: %f Mbits' % (bandwidth * 0.000008))
+        print('bandwidth: %f Mbits' % (bandwidth * 8 / 1024 / 1024))
         print('Jitter: %f second' % jitter)
         print('Packet loss: %f' % packet_loss)
         return {
