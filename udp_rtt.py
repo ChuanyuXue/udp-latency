@@ -105,9 +105,7 @@ class Client:
         var = sum(pow(x - latency_avg, 2)
                   for x in latency_list) / len(latency_list)
         latency_std = math.sqrt(var)
-        jitter = sum(
-            [abs(v - latency_list[i])
-             for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
+        jitter = max(latency_list) - min(latency_list)
         cycle = (self.receive_log[-1][3] - self.receive_log[0][3]) * 1e-9
         bandwidth = sum([x[4] + 32 for x in self.receive_log]) / cycle
         packet_loss = (max([x[0] for x in self.receive_log]) -
@@ -121,7 +119,7 @@ class Client:
         print('Maximum latency: %f second' % latency_max)
         print('Std latency: %f second' % latency_std)
         print('bandwidth: %f Mbits' % (bandwidth * 8 / 1024 / 1024))
-        print('Jitter: %f second' % jitter)
+        print('Jitter (Latency Max - Min): %f second' % jitter)
         print('Packet loss: %f' % packet_loss)
         return {
             'latency_max': latency_max,
@@ -228,7 +226,7 @@ if __name__ == "__main__":
     if '-c' in opts.keys():
         client = Client(remote_ip=opts['--ip'], to_port=int(opts['--port']))
         if '-m' in opts:
-            opts['-f'] = int(opts['-m']) * 125000 / int(opts['-n'])
+            opts['-f'] = float(opts['-m']) * 125000 / int(opts['-n'])
         if opts['-f'] == 'm':
             opts['-f'] = math.inf
 

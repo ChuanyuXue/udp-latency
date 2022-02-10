@@ -199,9 +199,7 @@ class Server:
         var = sum(pow(x - latency_avg, 2)
                   for x in latency_list) / len(latency_list)
         latency_std = math.sqrt(var)
-        jitter = sum(
-            [abs(v - latency_list[i])
-             for i, v in enumerate(latency_list[1:])]) / len(latency_list[1:])
+        jitter = max(latency_list) - min(latency_list)
         cycle = (self.log[-1][3] - self.log[0][3]) * 1e-9
         bandwidth = sum([x[4] + 32 for x in self.log]) / cycle
         packet_loss = (max([x[0]
@@ -215,7 +213,7 @@ class Server:
         print('Maximum latency: %f second' % latency_max)
         print('Std latency: %f second' % latency_std)
         print('bandwidth: %f Mbits' % (bandwidth * 8 / 1024 / 1024))
-        print('Jitter: %f second' % jitter)
+        print('Jitter (Latency Max - Min): %f second' % jitter)
         print('Packet loss: %f' % packet_loss)
         return {
             'latency_max': latency_max,
