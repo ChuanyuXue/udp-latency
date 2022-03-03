@@ -7,6 +7,7 @@ import getopt
 from multiprocessing import Process, Queue
 
 HEADER_SIZE = 32 + 4 + 8
+BUFFER_SIZE = 3_000_000
 
 
 class Client:
@@ -27,6 +28,8 @@ class Client:
 
         self._udp_socket = socket.socket(family=socket.AF_INET,
                                          type=socket.SOCK_DGRAM)
+        self._udp_socket.setsockopt(
+            socket.SOL_SOCKET, socket.SO_RCVBUF, BUFFER_SIZE)
         self._udp_socket.bind((self.local_ip, self.local_port))
 
     def send(self, frequency, packet_size, running_time, dyna):
@@ -156,6 +159,8 @@ class Server:
 
         self._udp_socket = socket.socket(family=socket.AF_INET,
                                          type=socket.SOCK_DGRAM)
+        self._udp_socket.setsockopt(
+            socket.SOL_SOCKET, socket.SO_RCVBUF, BUFFER_SIZE)
         self._udp_socket.bind((self.local_ip, self.local_port))
 
     def listen(self, buffer_size, verbose, q):
