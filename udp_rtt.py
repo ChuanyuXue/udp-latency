@@ -28,11 +28,11 @@ class Client:
 
         self._udp_socket = socket.socket(family=socket.AF_INET,
                                          type=socket.SOCK_DGRAM)
-        self._udp_socket.setsockopt(
-            socket.SOL_SOCKET, socket.SO_RCVBUF, BUFFER_SIZE)
+        self._udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF,
+                                    BUFFER_SIZE)
         self._udp_socket.bind((self.local_ip, self.local_port))
 
-    def send(self, frequency, packet_size, running_time, dyna):
+    def send(self, frequency, packet_size, running_time, dyna, queue):
         if packet_size < HEADER_SIZE or packet_size > 1500:
             raise "Warning: packet size is not allowed larger than 1500 bytes (MTU size)"
 
@@ -70,11 +70,13 @@ class Client:
             time.sleep(prac_period)
             # time.sleep(period)
 
-        self._udp_socket.sendto((0).to_bytes(4, 'big'),
-                                (self.remote_ip, self.to_port))
+        while q.empty():
+            self._udp_socket.sendto((0).to_bytes(4, 'big'),
+                                    (self.remote_ip, self.to_port))
+            time.sleep(0.05)
         self._udp_socket.close()
 
-    def listen(self, buffer_size, verbose, save=False):
+    def listen(self, buffer_size, verbose, save, queue):
         latency = 0
         while True:
             msg, _ = self._udp_socket.recvfrom(buffer_size)
@@ -98,8 +100,10 @@ class Client:
                        recv_size))
 
         self.evaluate()
+
         if self.save:
             self.save(save)
+        q.put(0)
 
     def evaluate(self):
         latency_list = [row[1] for row in self.receive_log]
@@ -159,8 +163,8 @@ class Server:
 
         self._udp_socket = socket.socket(family=socket.AF_INET,
                                          type=socket.SOCK_DGRAM)
-        self._udp_socket.setsockopt(
-            socket.SOL_SOCKET, socket.SO_RCVBUF, BUFFER_SIZE)
+        self._udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF,
+                                    BUFFER_SIZE)
         self._udp_socket.bind((self.local_ip, self.local_port))
 
     def listen(self, buffer_size, verbose, q):
@@ -168,12 +172,9 @@ class Server:
             msg, _ = self._udp_socket.recvfrom(buffer_size)
             recv_time = time.time_ns()
             packet_index = int.from_bytes(msg[:4], 'big')
+
             send_time = int.from_bytes(msg[4:12], 'big')
             q.put((packet_index, send_time - recv_time))
-
-            if packet_index == 0:
-                q.put((0, 0))
-                break
 
             if verbose:
                 print("Receive message at time %d" % recv_time)
@@ -230,19 +231,24 @@ if __name__ == "__main__":
 
     if '-c' in opts.keys():
         client = Client(remote_ip=opts['--ip'], to_port=int(opts['--port']))
+        q = Queue()
+
         if '-m' in opts:
             opts['-f'] = float(opts['-m']) * 125000 / int(opts['-n'])
         if opts['-f'] == 'm':
             opts['-f'] = math.inf
 
         listen_process = Process(target=client.listen,
-                                 args=(int(opts['-b']),
-                                       eval(opts['--verbose']),
-                                       opts["--save"]))
+                                 args=(
+                                     int(opts['-b']),
+                                     eval(opts['--verbose']),
+                                     opts["--save"],
+                                     q,
+                                 ))
 
         listen_process.start()
         client.send(float(opts['-f']), int(opts['-n']), int(opts['-t']),
-                    eval(opts['--dyna']))
+                    eval(opts['--dyna']), q)
 
         listen_process.join()
         listen_process.close()
