@@ -172,9 +172,11 @@ class Server:
             msg, _ = self._udp_socket.recvfrom(buffer_size)
             recv_time = time.time_ns()
             packet_index = int.from_bytes(msg[:4], 'big')
-
             send_time = int.from_bytes(msg[4:12], 'big')
             q.put((packet_index, send_time - recv_time))
+
+            if packet_index == 0:
+                break
 
             if verbose:
                 print("Receive message at time %d" % recv_time)
