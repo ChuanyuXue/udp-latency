@@ -76,7 +76,7 @@ class Client:
             time.sleep(0.05)
         self._udp_socket.close()
 
-    def listen(self, buffer_size, verbose, save, queue):
+    def listen(self, buffer_size, verbose, save, q):
         latency = 0
         while True:
             msg, _ = self._udp_socket.recvfrom(buffer_size)
