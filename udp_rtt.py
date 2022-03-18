@@ -210,29 +210,33 @@ if __name__ == "__main__":
     try:
         opts, _ = getopt.getopt(
             sys.argv[1:], 'csf:n:t:b:m:',
-            ["verbose=", "save=", "ip=", "port=", "sync=", "dyna="])
+            ["verbose=", "save=", "ip=", "rp=", "lp=", "sync=", "dyna="])
         opts = dict(opts)
         opts.setdefault('-f', "1")
         opts.setdefault('-n', "1500")
         opts.setdefault('-t', "10")
         opts.setdefault('-b', "1500")
         opts.setdefault('--ip', "127.0.0.1")
-        opts.setdefault('--port', "20001")
         opts.setdefault('--verbose', "True")
         opts.setdefault('--dyna', "True")
         opts.setdefault('--save', "result.csv")
 
     except getopt.GetoptError:
         print(
-            'For Client --> udp_latency.py -c -f/m <frequency / bandwidth> -m <bandwidth> -n <packet size> -t <running time> -b <buffer size> --ip <remote ip> --port <to port> --verbose <bool> --save <records saving path>'
+            'For Client --> udp_latency.py -c -f/m <frequency / bandwidth> -m <bandwidth> -n <packet size> -t <running time> -b <buffer size> --ip <remote ip> --lp <local port> --rp <remote port> --verbose <bool> --save <records saving path>'
         )
         print(
-            'For Server --> udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool>'
+            'For Server --> udp_latency.py -s -b <buffer size> --ip <remote ip> --lp <local port> --rp <remote port> --verbose <bool>'
         )
         sys.exit(2)
 
     if '-c' in opts.keys():
-        client = Client(remote_ip=opts['--ip'], to_port=int(opts['--port']))
+        opts.setdefault('--lp', "20002")
+        opts.setdefault('--rp', "20001")
+
+        client = Client(remote_ip=opts['--ip'],
+                        to_port=int(opts['--rp']),
+                        local_port=int(opts['--lp']))
         q = Queue()
 
         if '-m' in opts:
@@ -256,7 +260,12 @@ if __name__ == "__main__":
         listen_process.close()
 
     if '-s' in opts.keys():
-        server = Server(remote_ip=opts['--ip'], local_port=int(opts['--port']))
+        opts.setdefault('--lp', "20001")
+        opts.setdefault('--rp', "20002")
+
+        server = Server(remote_ip=opts['--ip'],
+                        local_port=int(opts['--lp']),
+                        to_port=int(opts['--rp']))
         q = Queue()
 
         listen_process = Process(target=server.listen,
