@@ -41,7 +41,7 @@ class Client:
             send_nums = self._udp_socket.sendto(msg,
                                                 (self.remote_ip, self.to_port))
 
-            msg, _ = self._udp_socket.recvfrom(128 + HEADER_SIZE)
+            msg, rx_address = self._udp_socket.recvfrom(128 + HEADER_SIZE)
             t2 = int.from_bytes(msg[4:12], 'big')
             t2_p = time.time_ns()
             time.sleep(0.05)
@@ -50,8 +50,7 @@ class Client:
             time_bytes = t2_p.to_bytes(8, 'big')
             msg = b''
             msg = index_bytes + time_bytes + msg
-            send_nums = self._udp_socket.sendto(msg,
-                                                (self.remote_ip, self.to_port))
+            send_nums = self._udp_socket.sendto(msg,rx_address)
             time.sleep(1)
 
     def send(self, frequency, packet_size, running_time, verbose, sync, dyna):
