@@ -69,7 +69,7 @@ Udp-rrt requirest no synchronization.
 
 Due to the processing delay is non-deterministic on normal operation systems as following figure, it is possible that the sending frequency is significantly slow than the expected.
 
-![figure](https://www.researchgate.net/profile/Joan-Feigenbaum/publication/221655613/figure/fig7/AS:394046808838155@1470959488690/Processing-delay-distribution.png)
+![figure](./Processing-delay-distribution.png)
 
 For example, when you send flow in 5Mbits, the real sending speed might be only 3Mbits as there is an implicit blocking time in `socket.sendto()` code. This is aviodable for scheduled traffic due to the accumulative processing delay from OS when volumn is high.
 
