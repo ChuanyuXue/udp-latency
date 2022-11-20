@@ -76,9 +76,7 @@ For example, when you send flow in 5Mbits, the real sending speed might be only 
 To deal with this problem, this code introduces a dynamic adaption approach to achieve expected bandwidth:
 
 $$
-NewFrequency = \frac{ExpectedFrequency}{DecayedRate} \\
-ExpectedFrequency = \frac{CurrentFrquency \times RunningTime}{RemaingTime}\\
-DecayedRate = \frac{CurrentFrequency}{Global Frequency}
+NewFrequency = \frac{ExpectedFrequency}{DecayedRate}, ExpectedFrequency = \frac{CurrentFrquency \times RunningTime}{RemaingTime}, DecayedRate = \frac{CurrentFrequency}{Global Frequency}
 $$
 
 Where $CurrenctFrequency$ is the average frequency from program beginning to current time. $GlobalFrequency$ is the frequency user set with `-f` or `-m` argument. $RunningTime$ and $RemainingTime$ is the time from programming beginning time and time to programming ending time defined by `-t` argument respectively.
