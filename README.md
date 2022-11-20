@@ -71,9 +71,9 @@ Due to the processing delay is non-deterministic on normal operation systems as 
 
 ![figure](./Processing-delay-distribution.png)
 
-> For example, you with to send flow in 5Mbits by `-m` paramter (for a 100 byte packet in 1 Gbs linkspeed, you call `socket.sendto` every 2.5 us in Python interpreter), however the sending speed can be only 3Mbits during runtime as there is a uncontrollable delay in `socket.sendto()` system call (so actually the problem call udp send around every 4.2 us with that delay). This is a common issue for a non-realtime OS when the application layer and MAC layer are not synchronized especial for high-frequency traffic. If your application is time critical, I would suggest you to try Linux Qdisc ETF scheduler with LaunchTime function with Intel i210 NIC, which is the best solution I know so far :)
+> For example, you with to send flow in 5Mbits by `-m` paramter (for a 100 byte packet in 1 Gbs linkspeed, you call `socket.sendto` every 2.5 us in Python interpreter), however the sending speed can be only 3Mbits during runtime as there is a uncontrollable and unpredictable delay in `socket.sendto()` system call (so actually the problem call udp send around every 4.2 us with that delay). This is a common issue for a non-realtime OS when the application layer and MAC layer are not synchronized especial for high-frequency traffic. If your application is time critical, I would suggest you to try Linux Qdisc ETF scheduler with LaunchTime function with Intel i210 NIC, which is the best solution I know so far :)
 
-To alleviate this problem here, this code introduces a dynamic adaption approach to achieve expected bandwidth:
+To alleviate this problem here, this code uses a greedy method to adjust sending frequency dynamically (like PID control):
 
 $$
 NewFrequency = \frac{ExpectedFrequency}{DecayedRate}, ExpectedFrequency = \frac{CurrentFrquency \times RunningTime}{RemaingTime}, DecayedRate = \frac{CurrentFrequency}{Global Frequency}
