@@ -71,7 +71,7 @@ Due to the processing delay is non-deterministic on normal operation systems as 
 
 ![figure](./Processing-delay-distribution.png)
 
-For example, when you send flow in 5Mbits, the real sending speed might be only 3Mbits as there is an implicit blocking time in `socket.sendto()` code. This is aviodable for scheduled traffic due to the accumulative processing delay from OS when throughput is high.
+For example, when you send flow in 5Mbits (for a 100 byte packet in 1 Gbs linkspeed, you call `socket.sendto` every 2.5 us in Python interpreter), however the real sending speed may be only 3Mbits as there is a uncontrollable delay in `socket.sendto()` code (so actually the OS call udp send around every 4.2 us). This is a common issue for scheduling traffic in Application layer due to the application layer and MAC layer are not synchronized especial for high-frequency traffic. If your application is time critical, I would suggest you to try Linux Qdisc ETF scheduler with LaunchTime function in Intel i210 Ethernetcal, which is the best solution I know so far :)
 
 To alleviate this problem, this code introduces a dynamic adaption approach to achieve expected bandwidth:
 
