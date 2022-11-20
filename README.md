@@ -65,7 +65,7 @@ Udp-rrt doesn't rely on synchronization.
 
 ## Dynamic adaption (--dyna)
 
-⚠️  This method will slightly damage the periodicity. (Slight jitter contains in this additional bandwidth optimization)
+⚠️  This method will slightly damage the periodicity. (Small jitter contains with this additional bandwidth optimization)
 
 Due to the processing delay is non-deterministic on normal operation systems as following figure, it is possible that the sending frequency is significantly slower than the expectation.
 
