@@ -32,7 +32,7 @@ class Client:
                                     BUFFER_SIZE)
         self._udp_socket.bind((self.local_ip, self.local_port))
 
-    def send(self, frequency, packet_size, running_time, dyna, queue):
+    def send(self, frequency, packet_size, running_time, dyna, q):
         if packet_size < HEADER_SIZE or packet_size > 1500:
             raise "Warning: packet size is not allowed larger than 1500 bytes (MTU size)"
 
