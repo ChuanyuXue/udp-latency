@@ -19,13 +19,13 @@ Compare with existing communication latency measuring tools.
 | Simple as single Python file | ✅                                                        | ❌                                                      | ❌            | ❌                         |
 
 
-## Server Usage
+## Client Usage
 
 `python3 udp_latency.py -c -f/m <frequency / bandwidth> -n <packet size> -t <running time> --ip <remote ip> --port <to port> --verbose <bool> --sync <bool>`
 
 
 
-## Client Usage
+## Server Usage
 
 `python3 udp_latency.py -s -b <buffer size> --ip <remote ip> --port <local port> --verbose <bool> --sync <bool> --save <records saving path>`
 
