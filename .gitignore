@@ -1,2 +1,4 @@
 ## No experiment result
 *.csv
+.vscode
+.mypy_cache
