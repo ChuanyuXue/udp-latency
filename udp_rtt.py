@@ -5,6 +5,7 @@ import csv
 import sys
 import getopt
 from multiprocessing import Process, Queue
+from typing import Any, Optional, List, Union
 
 HEADER_SIZE = 32 + 4 + 8
 BUFFER_SIZE = 3_000_000
@@ -13,17 +14,17 @@ BUFFER_SIZE = 3_000_000
 class Client:
 
     def __init__(self,
-                 local_ip="0.0.0.0",
-                 local_port=20002,
-                 remote_ip="127.0.0.1",
-                 to_port=20001) -> None:
+                 local_ip: str="0.0.0.0",
+                 local_port: int=20002,
+                 remote_ip: str="127.0.0.1",
+                 to_port: int=20001) -> None:
 
         self.local_ip = local_ip
         self.local_port = local_port
         self.remote_ip = remote_ip
         self.to_port = to_port
-        self.send_log = []
-        self.receive_log = []
+        self.send_log: List[List[Union[int, float]]]= []
+        self.receive_log: List[List[Union[int, float]]] = []
         self.packet_index = 1
 
         self._udp_socket = socket.socket(family=socket.AF_INET,
@@ -32,15 +33,15 @@ class Client:
                                     BUFFER_SIZE)
         self._udp_socket.bind((self.local_ip, self.local_port))
 
-    def send(self, frequency, packet_size, running_time, dyna, queue):
+    def send(self, frequency: float, packet_size: int, running_time: int, dyna: bool, q: Queue) -> None:
         if packet_size < HEADER_SIZE or packet_size > 1500:
-            raise "Warning: packet size is not allowed larger than 1500 bytes (MTU size)"
+            raise Exception("Warning: packet size is not allowed larger than 1500 bytes (MTU size)")
 
         _payload_size = packet_size - HEADER_SIZE
 
         start_time = time.time_ns()
         total_packets = frequency * running_time
-        running_time = running_time * 1e9
+        running_time = running_time * int(1e9)
         period = 1 / frequency
         _fill = b''.join([b'\x00'] * (_payload_size))
 
@@ -76,8 +77,8 @@ class Client:
             time.sleep(0.05)
         self._udp_socket.close()
 
-    def listen(self, buffer_size, verbose, save, q):
-        latency = 0
+    def listen(self, buffer_size: int, verbose: bool, save: Optional[str], q: Queue)-> None:
+        latency = 0.0
         while True:
             msg, _ = self._udp_socket.recvfrom(buffer_size)
             recv_time = time.time_ns()
@@ -101,7 +102,7 @@ class Client:
 
         self.evaluate()
 
-        if self.save:
+        if save:
             self.save(save)
         q.put(0)
 
@@ -208,10 +209,10 @@ class Server:
 
 if __name__ == "__main__":
     try:
-        opts, _ = getopt.getopt(
+        _opts, _ = getopt.getopt(
             sys.argv[1:], 'csf:n:t:b:m:',
             ["verbose=", "save=", "ip=", "rp=", "lp=", "sync=", "dyna="])
-        opts = dict(opts)
+        opts = dict(_opts)
         opts.setdefault('-f', "1")
         opts.setdefault('-n', "1500")
         opts.setdefault('-t', "10")
@@ -237,12 +238,15 @@ if __name__ == "__main__":
         client = Client(remote_ip=opts['--ip'],
                         to_port=int(opts['--rp']),
                         local_port=int(opts['--lp']))
-        q = Queue()
+        q: Queue = Queue()
 
+        _f: float
         if '-m' in opts:
-            opts['-f'] = float(opts['-m']) * 125000 / int(opts['-n'])
-        if opts['-f'] == 'm':
-            opts['-f'] = math.inf
+            _f = float(opts['-m']) * 125000 / int(opts['-n'])
+        elif opts['-f'] == 'm':
+            _f = math.inf
+        else:
+            _f = float(opts['-f'])
 
         listen_process = Process(target=client.listen,
                                  args=(
@@ -253,7 +257,7 @@ if __name__ == "__main__":
                                  ))
 
         listen_process.start()
-        client.send(float(opts['-f']), int(opts['-n']), int(opts['-t']),
+        client.send(_f, int(opts['-n']), int(opts['-t']),
                     eval(opts['--dyna']), q)
 
         listen_process.join()

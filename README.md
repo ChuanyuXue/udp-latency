@@ -1,6 +1,7 @@
 # udp-latency
 A tiny end-to-end latency testing tool implemented using UDP protocol in a single Python file 📈. 
 
+Support both one-way and round-trip latency measurement:
 - `udp_latency.py` measures one-way latency.
 - `udp_rrt.py` measures round-trip latency. (both with same arguments)
 
