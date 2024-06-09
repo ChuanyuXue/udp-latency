@@ -99,7 +99,7 @@ class Client:
                 prac_period = (
                     (running_time - (current_time - start_time))
                     / (total_packets - len(self.log))
-                    * (len(self.log) / (frequency * (current_time - start_time) * 1e-9))
+                    * (len(self.log) / (frequency * (current_time - start_time + 1) * 1e-9))
                     * 1e-9
                 )
                 prac_period = period if prac_period > period else prac_period
